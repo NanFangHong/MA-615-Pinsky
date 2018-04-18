@@ -1,0 +1,12 @@
+name: PinskyApp
+title: PinskyApp
+username:
+account: nanfang
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 319632
+bundleId: 1323759
+url: https://nanfang.shinyapps.io/PinskyApp/
+when: 1523986273.99147
+asMultiple: FALSE
+asStatic: FALSE
