@@ -74,11 +74,10 @@ shinyServer(function(input, output) {
     symbol.intraday.filter <- symbol.intraday %>% mutate(Hour = index(intraday_3d), Minute = hms::as.hms(index(intraday_3d))) %>% filter(lubridate::date(Hour) == lubridate::today()) %>% filter(Minute > hms::as.hms("10:15:00"))
     i <- 1
     while (nrow(symbol.intraday.filter) == 0 ){
-      symbol.intraday.filter <- symbol.intraday %>% mutate(Hour = index(intraday_3d)) %>% filter(lubridate::date(Hour) == (lubridate::today() - lubridate::days(i)))
+      symbol.intraday.filter <- symbol.intraday %>% mutate(Hour = index(intraday_3d)) %>% filter(lubridate::date(Hour) == (lubridate::today() - lubridate::days(i))) %>% filter(Minute > hms::as.hms("10:15:00"))
       i <- i + 1
     }
     symbol.intraday <- symbol.intraday.filter
-    symbol.intraday <- symbol.intraday[3:nrow(symbol.intraday),]
     Now_Price <- tail(symbol.intraday, n =1)$Close %>% as.double()
     Now_Hour <- nrow(symbol.intraday)
     Rest_of_Hours <- 12 - Now_Hour
@@ -98,6 +97,7 @@ shinyServer(function(input, output) {
     Adjusted_PMF_High[1:Now_Hour] <- 0
     Adjusted_PMF_High[High.So_far_Hour] <- Adjusted_High_So_Far_P
     Sum_of_rest_of_PMF <- sum(Adjusted_PMF_High[(High.So_far_Hour + 1):length(Adjusted_PMF_High)])
+    if (is.na(Sum_of_rest_of_PMF)) {Sum_of_rest_of_PMF <- 0}
     if (Sum_of_rest_of_PMF == 0){
       Adjusted_PMF_High[High.So_far_Hour] <- 1
     }else {
@@ -119,7 +119,8 @@ shinyServer(function(input, output) {
     Adjusted_PMF_Low[1:Now_Hour] <- 0
     Adjusted_PMF_Low[Low.So_far_Hour] <- Adjusted_Low_So_Far_P
     Sum_of_rest_of_PMF <- sum(Adjusted_PMF_Low[(Low.So_far_Hour + 1):length(Adjusted_PMF_Low)])
-    if (Sum_of_rest_of_PMF == 0){
+    if (is.na(Sum_of_rest_of_PMF)) {Sum_of_rest_of_PMF <- 0}
+    if (Sum_of_rest_of_PMF == 0 ){
       Adjusted_PMF_Low[Low.So_far_Hour] <- 1
     }else {
       Adjusted_PMF_Low[(Low.So_far_Hour + 1):length(Adjusted_PMF_Low)] <- (Adjusted_Sum_of_rest_of_PMF * Adjusted_PMF_Low[(Low.So_far_Hour + 1):length(Adjusted_PMF_Low)]) / Sum_of_rest_of_PMF
@@ -555,3 +556,4 @@ shinyServer(function(input, output) {
   
   
 })
+
