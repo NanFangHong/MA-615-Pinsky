@@ -71,16 +71,19 @@ shinyServer(function(input, output) {
     intraday_3d <- f.get.google.intraday(ticker, 60 * 30, '3d') 
     
     symbol.intraday <- intraday_3d %>% as.tibble()
-    symbol.intraday.filter <- symbol.intraday %>% mutate(Hour = index(intraday_3d), Minute = hms::as.hms(index(intraday_3d))) %>% filter(lubridate::date(Hour) == lubridate::today()) %>% filter(Minute > hms::as.hms("10:15:00"))
+    symbol.intraday.filter <- symbol.intraday %>% mutate(Hour = lubridate::ymd_hms(index(intraday_3d))) %>% filter(lubridate::date(Hour) == lubridate::today()) 
     i <- 1
     while (nrow(symbol.intraday.filter) == 0 ){
-      symbol.intraday.filter <- symbol.intraday %>% mutate(Hour = index(intraday_3d)) %>% filter(lubridate::date(Hour) == (lubridate::today() - lubridate::days(i))) %>% filter(Minute > hms::as.hms("10:15:00"))
+      symbol.intraday.filter <- symbol.intraday %>% mutate(Hour = lubridate::ymd_hms(index(intraday_3d))) %>% filter(lubridate::date(Hour) == (lubridate::today() - lubridate::days(i))) 
       i <- i + 1
     }
+    symbol.intraday.filter <- symbol.intraday.filter %>% mutate(Minute = hms::as.hms(Hour, tz='UTC')) %>% filter(Minute > hms::as.hms("10:15:00", tz='UTC'))
     symbol.intraday <- symbol.intraday.filter
-    Now_Price <- tail(symbol.intraday, n =1)$Close %>% as.double()
+    print(symbol.intraday.filter)
+    Now_Price <- tail(symbol.intraday, n = 1)$Close %>% as.double()
     Now_Hour <- nrow(symbol.intraday)
     Rest_of_Hours <- 12 - Now_Hour
+    
     
     
     sd.High <- sqrt(var(intraday_3d$High) * Rest_of_Hours) 
@@ -137,11 +140,11 @@ shinyServer(function(input, output) {
         print(i)
         symbol.intraday.addNA <- add_row(symbol.intraday.addNA, High = c(NA), Low = c(NA), Hour = c(i))
       }
-      symbol.intraday.addNA <- symbol.intraday.addNA %>% mutate(PMF = Adjusted_PMF_High)
+      #symbol.intraday.addNA <- symbol.intraday.addNA %>% mutate(PMF = Adjusted_PMF_High)
     }else {
-      symbol.intraday.addNA <- symbol.intraday %>% select(High, Low) %>% mutate(PMF = Adjusted_PMF_High, Hour = c(1:12))
+      print(symbol.intraday)
+      symbol.intraday.addNA <- symbol.intraday %>% select(High, Low) %>% mutate(Hour = c(1:12))
     }
-    
     
     
     
